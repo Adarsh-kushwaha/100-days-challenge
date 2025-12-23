@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuthContext } from "@/context/AuthContext";
+import Image from "next/image";
 import { useState } from "react";
 // Removed unused import
 
@@ -29,7 +30,17 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen items-center justify-center bg-gray-950 px-4">
       <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 shadow-xl border border-gray-800">
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center flex flex-col items-center justify-center gap-4">
+          <div className="relative w-24 h-24 sm:w-24 sm:h-24 transition-transform hover:scale-105 duration-300 rounded-full">
+            <Image
+              src="/logo.png"
+              alt="100 Days Challenge Logo"
+              width={100}
+              height={100}
+              className="object-cover drop-shadow-2xl"
+              priority
+            />
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-gray-400">Sign in to continue your progress</p>
         </div>
