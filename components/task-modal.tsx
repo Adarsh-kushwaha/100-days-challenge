@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { type TaskState } from "@/app/page";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label"; // Checkbox often needs Label or wrapper
 import { cn } from "@/lib/utils";
+import { TaskState } from "@/lib/hooks/useChallengeData";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -50,7 +50,7 @@ export function TaskModal({
             Review your goals for today
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-3 py-4">
           {[
             { key: "exercise", label: "🏋️ Exercise", desc: "Did you move your body?" },
@@ -63,30 +63,27 @@ export function TaskModal({
               className={cn(
                 "flex items-center justify-between p-4 rounded-lg cursor-pointer transition-all duration-200 border-2 select-none",
                 tasks[key as keyof TaskState]
-                  ? "border-primary bg-primary/5"
-                  : "border-transparent bg-secondary hover:bg-secondary/80"
+                  ? "border-green-500/30 dark:border-green-500/30 dark:bg-primary-100/20"
+                  : "border-transparent dark:border-transparent bg-secondary hover:bg-secondary/80 dark:bg-secondary/80"
               )}
             >
               <div className="space-y-0.5">
                 <span className="font-semibold text-foreground block">{label}</span>
                 <span className="text-xs text-muted-foreground">{desc}</span>
               </div>
-              <Checkbox 
-                checked={tasks[key as keyof TaskState]} 
-                // We're handling click on parent div, so pointer-events-none on checkbox prevents double toggle if user clicks box directly? 
-                // Shadcn checkbox handles its own events. Better to let parent handle logic or just make checkbox controlled.
-                // Actually let's make the checkbox purely visual or controlled by the parent div click to maintain the 'big hit area' UX.
-                className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground pointer-events-none"
+              <Checkbox
+                checked={tasks[key as keyof TaskState]}
+                className="data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary dark:data-[state=checked]:text-primary-foreground pointer-events-none"
               />
             </div>
           ))}
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-2">
-           <Button variant="outline" onClick={onClose} className="flex-1">
+          <Button variant="outline" onClick={onClose} className="flex-1 cursor-pointer border-2">
             Cancel
           </Button>
-          <Button onClick={() => onSave(tasks)} className="flex-1">
+          <Button onClick={() => onSave(tasks)} className="flex-1 cursor-pointer">
             Save Progress
           </Button>
         </DialogFooter>
