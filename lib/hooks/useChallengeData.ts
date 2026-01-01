@@ -8,7 +8,10 @@ import {
   Timestamp, 
   updateDoc,
   doc,
-  serverTimestamp
+  serverTimestamp,
+  getDoc,
+  setDoc,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { User } from "firebase/auth";
@@ -30,12 +33,12 @@ export type DayData = {
 
 // --- Constants ---
 const TOTAL_DAYS = 100;
-const START_DATE = "2025-12-23"; // YYYY-MM-DD
+const DEFAULT_START_DATE = "2026-01-01"; // YYYY-MM-DD
 
 // --- Helper Functions ---
-const getChallengeDays = (): DayData[] => {
+const getChallengeDays = (startDateStr: string): DayData[] => {
   const days: DayData[] = [];
-  const start = new Date(START_DATE);
+  const start = new Date(startDateStr);
 
   for (let i = 0; i < TOTAL_DAYS; i++) {
     const date = new Date(start);
@@ -50,25 +53,84 @@ const getChallengeDays = (): DayData[] => {
   return days;
 };
 
+const getLocalAuthDate = () => {
+   const now = new Date();
+   const offset = now.getTimezoneOffset();
+   const localDate = new Date(now.getTime() - offset * 60 * 1000);
+   return localDate.toISOString().split("T")[0];
+};
+
 export function useChallengeData(user: User | null) {
   const [days, setDays] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState<string>(DEFAULT_START_DATE);
+
+  // Reset Challenge
+  const resetChallenge = useCallback(async () => {
+      if (!user) return;
+      console.log("Resetting challenge...");
+
+      try {
+          // 1. Delete all dailyEntries
+          const dailyEntriesRef = collection(db, "users", user.uid, "dailyEntries");
+          const q = query(dailyEntriesRef);
+          const snapshot = await getDocs(q);
+          
+          const batch = writeBatch(db);
+          snapshot.docs.forEach((doc) => {
+              batch.delete(doc.ref);
+          });
+          await batch.commit();
+
+          // 2. Set new start date to TODAY
+          const today = getLocalAuthDate();
+          const userRef = doc(db, "users", user.uid);
+          await setDoc(userRef, { challengeStartDate: today }, { merge: true });
+          
+          setStartDate(today);
+          setDays(getChallengeDays(today));
+          
+      } catch (error) {
+          console.error("Error resetting challenge:", error);
+      }
+  }, [user]);
 
   // Fetch data
   const fetchData = useCallback(async () => {
     if (!user) {
-      setDays(getChallengeDays());
+      setDays(getChallengeDays(DEFAULT_START_DATE));
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
+      // 1. Fetch Challenge Start Date
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      let currentStartDate = DEFAULT_START_DATE;
+
+      if (userSnap.exists() && userSnap.data().challengeStartDate) {
+          currentStartDate = userSnap.data().challengeStartDate;
+      } else {
+          // Initialize if missing
+           await setDoc(userRef, { challengeStartDate: DEFAULT_START_DATE }, { merge: true });
+      }
+      setStartDate(currentStartDate);
+
+      // 2. Fetch Entries
       const dailyEntriesRef = collection(db, "users", user.uid, "dailyEntries");
       const q = query(dailyEntriesRef);
       const querySnapshot = await getDocs(q);
 
       const fetchedData: Record<number, DayData> = {};
+      const filledDates: Set<string> = new Set();
+      
+      // Temporary storage to check for validity before finalizing
+      // We need to fetch sub-tasks for each to calculate completed count accurately if not stored?
+      // Actually standard logic: relying on `completedTasks` field in doc.
+      
+      const entriesByDate: Record<string, { completedTasks: number }> = {};
 
       for (const docSnapshot of querySnapshot.docs) {
         const data = docSnapshot.data();
@@ -101,10 +163,54 @@ export function useChallengeData(user: User | null) {
             completedTasks: data.completedTasks || 0,
             tasks: tasksState
         };
+        
+        entriesByDate[isoDate] = { completedTasks: data.completedTasks || 0 };
       }
 
-      // Merge with default 100-day structure
-      const defaultDays = getChallengeDays();
+      // 3. Check for Missed Days (Logic: Iterate from Start Date -> Yesterday)
+      // If any day in that range has 0 completed tasks (or no entry), RESET.
+      
+      const today = getLocalAuthDate();
+      let shouldReset = false;
+      const start = new Date(currentStartDate);
+      const now = new Date(today);
+      
+      // We iterate day by day
+      // Avoid infinite loop if dates are weird
+      const maxCheckDays = 365; 
+      let checkDate = new Date(start);
+      
+      // If start date is in future (e.g. user manually set it?), we don't reset.
+      // If start date is today, we don't reset.
+      
+      if (checkDate < now) {
+          let loopCount = 0;
+           while (checkDate < now && loopCount < maxCheckDays) {
+              const isoCheck = checkDate.toISOString().split("T")[0];
+              
+              // Check if this date has > 0 tasks
+              // We need to find if we have an entry for this date in `entriesByDate`
+              const entry = entriesByDate[isoCheck];
+              
+              if (!entry || entry.completedTasks === 0) {
+                  console.log(`Missed day found: ${isoCheck}. Resetting...`);
+                  shouldReset = true;
+                  break;
+              }
+              
+              checkDate.setDate(checkDate.getDate() + 1);
+              loopCount++;
+           }
+      }
+
+      if (shouldReset) {
+          await resetChallenge();
+          setLoading(false);
+          return; // fetch will be re-triggered or state updated by resetChallenge
+      }
+
+      // 4. Merge with default structure
+      const defaultDays = getChallengeDays(currentStartDate);
       const mergedDays = defaultDays.map(defaultDay => {
         return fetchedData[defaultDay.day] ? fetchedData[defaultDay.day] : defaultDay;
       });
@@ -113,12 +219,11 @@ export function useChallengeData(user: User | null) {
 
     } catch (error) {
       console.error("Error fetching challenge data:", error);
-      // Fallback to default
-      setDays(getChallengeDays());
+      setDays(getChallengeDays(DEFAULT_START_DATE));
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, resetChallenge]);
 
   useEffect(() => {
     fetchData();
@@ -145,7 +250,10 @@ export function useChallengeData(user: User | null) {
         const dayNumber = targetDay.day;
         const dailyEntriesRef = collection(db, "users", user.uid, "dailyEntries");
         
-        // Check if entry exists
+        // Check if entry exists for this specific DAY NUMBER (which is tied to date in our logic now)
+        // Ideally we should query by Date to be safer, but Day Number is derived from Start Date
+        // so it should be consistent unless Start Date changes mid-operation.
+        
         const q = query(dailyEntriesRef, where("day", "==", dayNumber));
         const querySnapshot = await getDocs(q);
 
@@ -158,7 +266,6 @@ export function useChallengeData(user: User | null) {
             
             await updateDoc(docRef, {
                 completedTasks: completedCount
-                // Note: We don't need to update date/day usually unless corrected
             });
 
         } else {
@@ -177,26 +284,22 @@ export function useChallengeData(user: User | null) {
         const tasksRef = collection(db, "users", user.uid, "dailyEntries", dailyEntryId, "tasks");
         const tasksSnapshot = await getDocs(tasksRef);
         
-        // Create a map of existing task documents for easy lookup
-        const existingTaskDocs: Record<string, string> = {}; // name -> docId
+        const existingTaskDocs: Record<string, string> = {}; 
         tasksSnapshot.forEach(doc => {
             const data = doc.data();
             existingTaskDocs[data.name] = doc.id;
         });
 
-        // Update or Create each task
         const taskNames: (keyof TaskState)[] = ["exercise", "programming", "healthyFood"];
         
         for (const name of taskNames) {
             const isCompleted = newTasks[name];
             
             if (existingTaskDocs[name]) {
-                // Update existing sub-document
                 await updateDoc(doc(db, "users", user.uid, "dailyEntries", dailyEntryId, "tasks", existingTaskDocs[name]), {
                     completed: isCompleted
                 });
             } else {
-                // Create new sub-document
                 await addDoc(tasksRef, {
                     name: name,
                     completed: isCompleted
@@ -206,9 +309,8 @@ export function useChallengeData(user: User | null) {
 
      } catch (error) {
         console.error("Error saving day:", error);
-        // Revert optimistic update if needed or verify on refresh
      }
   };
 
-  return { days, loading, saveDay };
+  return { days, loading, saveDay, resetChallenge };
 }
