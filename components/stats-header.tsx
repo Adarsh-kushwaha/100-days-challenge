@@ -3,10 +3,16 @@ import React from "react";
 export function StatsHeader({
   daysLeft,
   score,
+  endDate,
 }: {
   daysLeft: number;
   score: number;
+  endDate: string | null;
 }) {
+  const formattedDate = endDate
+    ? new Date(endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "Loading...";
+
   return (
     <header className="w-full max-w-3xl mx-auto mb-8 text-center space-y-6 pt-12 px-4">
       <div className="flex flex-col items-center gap-4">
@@ -19,13 +25,17 @@ export function StatsHeader({
           </p> */}
         </div>
       </div>
-      <div className="flex sm:flex-row justify-center items-center gap-4 text-muted-foreground font-medium">
-        <div className="px-4 py-2 bg-card rounded-full border border-gray-700/70 shadow-sm">
+      <div className="flex flex-row justify-center items-center gap-2 text-muted-foreground font-medium">
+        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
           ⏳ Days Left: <span className="text-foreground font-bold">{Math.max(0, daysLeft)}</span>
         </div>
-        <div className="px-4 py-2 bg-card rounded-full border border-gray-700/70 shadow-sm">
+        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
           🏆 Score: <span className="text-primary font-bold">{score}</span> / 300
         </div>
+        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
+          📅 Ends: <span className="text-foreground font-bold">{formattedDate}</span>
+        </div>
+
       </div>
     </header>
   );

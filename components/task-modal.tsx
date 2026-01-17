@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label"; // Checkbox often needs Label or wrapper
 import { cn } from "@/lib/utils";
 import { TaskState } from "@/lib/hooks/useChallengeData";
 
@@ -53,9 +52,9 @@ export function TaskModal({
 
         <div className="space-y-3 py-4">
           {[
-            { key: "exercise", label: "🏋️ Exercise", desc: "Did you move your body?" },
-            { key: "programming", label: "💻 Programming", desc: "Did you code today?" },
-            { key: "healthyFood", label: "🥗 Healthy Food", desc: "Did you eat clean?" },
+            { key: "exercise", label: "🏋️ Exercise", desc: "Did you exercise for 30 min and walk 5,000 steps?" },
+            { key: "programming", label: "💻 Programming", desc: "Did you do at least 2 DSA and 1 Machine Coding Q?" },
+            { key: "healthyFood", label: "🥗 Healthy Food", desc: "Did you eat clean at least 2 meals a day?" },
           ].map(({ key, label, desc }) => (
             <div
               key={key}

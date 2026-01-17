@@ -25,9 +25,9 @@ export function DayCard({
   if (status === "missed") {
     colorClass = "bg-red-500/10 dark:border-red-500/30 dark:border-2 dark:text-red-700 dark:text-red-400";
   } else if (data.completedTasks > 0) {
-    if (data.completedTasks === 3) colorClass = "bg-green-600/15 dark:border-green-600/50 dark:border-2 dark:text-green-600 dark:text-green-600";
-    else if (data.completedTasks === 2) colorClass = "bg-green-400/15 dark:border-green-400/50 dark:border-2 dark:text-green-400 dark:text-green-400";
-    else if (data.completedTasks === 1) colorClass = "bg-green-200/15 dark:border-green-200/50 dark:border-2 dark:text-green-200 dark:text-green-200";
+    if (data.completedTasks === 3) colorClass = "bg-green-400/20 dark:border-green-400/50 dark:border-2 dark:text-green-400";
+    else if (data.completedTasks === 2) colorClass = "bg-green-600/20 dark:border-green-600/50 dark:border-2 dark:text-green-600";
+    else if (data.completedTasks === 1) colorClass = "bg-green-800/20 dark:border-green-800/50 dark:border-2 dark:text-green-800";
   } else if (status === "current") {
     // Current but 0 tasks
     colorClass = "bg-card  dark:text-foreground";

@@ -8,6 +8,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import { useChallengeData, type TaskState } from "@/lib/hooks/useChallengeData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { WelcomeScreen } from "@/components/welcome-screen";
 
 // --- Helper Functions ---
 
@@ -64,9 +65,13 @@ export default function ChallengeApp() {
     }
   }
 
+  // Calculate end date
+  const lastDayDate = days.length > 0 ? days[days.length - 1].date : null;
+
   return (
     <div className="min-h-screen bg-background pb-20 font-sans selection:bg-primary/20">
-      <StatsHeader daysLeft={daysLeft} score={score} />
+      <WelcomeScreen isLoading={authLoading || challengeLoading} />
+      <StatsHeader daysLeft={daysLeft} score={score} endDate={lastDayDate} />
       <main className="max-w-4xl mx-auto px-4">
         {authLoading || challengeLoading ? (
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 sm:gap-3">
@@ -112,10 +117,9 @@ export default function ChallengeApp() {
       {/* Footer / Legend */}
       <footer className="mt-12 text-center text-sm text-muted-foreground space-y-4">
         <div className="flex flex-wrap justify-center gap-4">
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500"></span> 3 Tasks</div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-yellow-500"></span> 2 Tasks</div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-500"></span> 1 Task</div>
-          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-500"></span> Missed</div>
+          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-400"></span> 3 Tasks</div>
+          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-600"></span> 2 Tasks</div>
+          <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-800"></span> 1 Task</div>
         </div>
         <div className="pt-8">
           {/* <Button
