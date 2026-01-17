@@ -25,7 +25,7 @@ export function StatsHeader({
           </p> */}
         </div>
       </div>
-      <div className="flex flex-row justify-center items-center gap-2 text-muted-foreground font-medium">
+      <div className="flex flex-row justify-center items-center gap-2 text-muted-foreground font-medium px-2">
         <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
           ⏳ Days Left: <span className="text-foreground font-bold">{Math.max(0, daysLeft)}</span>
         </div>
@@ -33,7 +33,7 @@ export function StatsHeader({
           🏆 Score: <span className="text-primary font-bold">{score}</span> / 300
         </div>
         <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
-          📅 Ends: <span className="text-foreground font-bold">{formattedDate}</span>
+          📅 <span className="text-foreground font-bold">{formattedDate}</span>
         </div>
 
       </div>
