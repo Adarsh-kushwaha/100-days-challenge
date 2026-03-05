@@ -6,7 +6,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI || "mongodb+srv://heyadarshhere_db_user:GH0Sqbv3ZktM8Bui@cluster0.1mrfioj.mongodb.net/100dayschallenge?retryWrites=true&w=majority&appName=Cluster0";
-const options = {};
+const options = { tls: true };
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
