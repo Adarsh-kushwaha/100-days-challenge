@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "100 Days Challenge - Build Better Habits",
   description: "Track your progress, build consistency, and achieve your goals with the 100 Days Challenge tracker. A daily companion for your journey to success.",
   icons: {

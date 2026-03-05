@@ -20,11 +20,14 @@ const getLocalTimeISO = () => {
   return localDate.toISOString().split("T")[0];
 };
 
+import { collection, query, where, getDocs, addDoc, updateDoc, Timestamp, serverTimestamp, doc, setDoc, writeBatch } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
 // --- Main Application ---
 
 export default function ChallengeApp() {
   const { user, loading: authLoading } = useAuthContext();
-  const { days, loading: challengeLoading, saveDay, resetChallenge } = useChallengeData(user);
+  const { days, loading: challengeLoading, saveDay, resetChallenge, startDate } = useChallengeData(user);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -45,8 +48,11 @@ export default function ChallengeApp() {
 
   // Scoring
   const score = days.reduce((acc, day) => {
-    // 3 points for 3 tasks (green), 2 for 2 (yellow), 1 for 1 (orange)
-    return acc + day.completedTasks;
+    const isPast = day.date < todayDate;
+    if (day.completedTasks >= 2) return acc + 1;
+    if (day.completedTasks === 1) return acc; // 0 points
+    if (day.completedTasks === 0 && isPast) return acc - 1; // -1 point for missed past days
+    return acc;
   }, 0);
 
   // Days left calculation
@@ -121,19 +127,7 @@ export default function ChallengeApp() {
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-600"></span> 2 Tasks</div>
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-800"></span> 1 Task</div>
         </div>
-        <div className="pt-8">
-          {/* <Button
-            variant="destructive"
-            onClick={async () => {
-              if (confirm("Are you sure you want to DELETE ALL DATA and reset the challenge? This cannot be undone.")) {
-                await resetChallenge();
-              }
-            }}
-            className="text-xs text-red-500 hover:text-red-700 underline"
-          >
-            [Debug] Reset / Clear All Data
-          </Button> */}
-        </div>
+        {/* Debug/Reset buttons removed for MongoDB migration */}
       </footer>
 
       <TaskModal

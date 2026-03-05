@@ -9,9 +9,10 @@ export function StatsHeader({
   score: number;
   endDate: string | null;
 }) {
-  const formattedDate = endDate
+  const formattedEndDate = endDate
     ? new Date(endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : "Loading...";
+  const formattedStartDate = "6 Mar 2026";
 
   return (
     <header className="w-full max-w-3xl mx-auto mb-8 text-center space-y-6 pt-12 px-4">
@@ -25,17 +26,23 @@ export function StatsHeader({
           </p> */}
         </div>
       </div>
-      <div className="flex flex-row justify-center items-center gap-2 text-muted-foreground font-medium px-2">
-        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
-          ⏳ Days Left: <span className="text-foreground font-bold">{Math.max(0, daysLeft)}</span>
+      <div className="grid grid-cols-4 md:flex md:flex-row justify-center items-center gap-2 sm:gap-3 text-muted-foreground font-medium w-full max-w-sm md:max-w-none mx-auto">
+        <div className="col-span-2 md:col-span-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-card rounded-xl border border-gray-700/50 shadow-sm text-center flex flex-col items-center justify-center transition-all hover:bg-card/80">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider opacity-70 mb-0.5">🗓️ Days Left</span>
+          <span className="text-foreground font-black text-base sm:text-lg">{Math.max(0, daysLeft)}</span>
         </div>
-        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
-          🏆 Score: <span className="text-primary font-bold">{score}</span> / 300
+        <div className="col-span-2 md:col-span-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-card rounded-xl border border-gray-700/50 shadow-sm text-center flex flex-col items-center justify-center transition-all hover:bg-card/80">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider opacity-70 mb-0.5">🏆 Score</span>
+          <span className="text-foreground font-black text-base sm:text-lg text-primary">{score}<span className="text-[10px] text-muted-foreground font-normal ml-0.5">/100</span></span>
         </div>
-        <div className="px-3 py-1 bg-card rounded-full border border-gray-700/70 shadow-sm text-xs sm:text-sm whitespace-nowrap">
-          📅 <span className="text-foreground font-bold">{formattedDate}</span>
+        <div className="col-span-2 md:col-span-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-card rounded-xl border border-gray-700/50 shadow-sm text-center flex flex-col items-center justify-center transition-all hover:bg-card/80">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider opacity-70 mb-0.5">🏁 Start Date</span>
+          <span className="text-foreground font-bold text-sm whitespace-nowrap">{formattedStartDate}</span>
         </div>
-
+        <div className="col-span-2 md:col-span-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-card rounded-xl border border-gray-700/50 shadow-sm text-center flex flex-col items-center justify-center transition-all hover:bg-card/80">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider opacity-70 mb-0.5">🎯 End Date</span>
+          <span className="text-foreground font-bold text-sm whitespace-nowrap">{formattedEndDate}</span>
+        </div>
       </div>
     </header>
   );
